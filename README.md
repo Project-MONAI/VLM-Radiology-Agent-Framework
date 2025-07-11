@@ -23,14 +23,6 @@ It focuses on addressing the unique challenges faced by general-purpose vision-l
 
 For details, see [here](m3/README.md).
 
-### Online Demo
-
-Please visit the [VILA-M3 Demo](https://vila-m3-demo.monai.ngc.nvidia.com/) to try out a preview version of the model.
-
-<p align="center">
-  <img src="m3/docs/images/gradio_app_ct.png" width="70%"/>
-</p>
-
 ## Local Demo
 
 ### Prerequisites
