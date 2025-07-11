@@ -1,0 +1,18 @@
+language: "en-US"
+early_access: true
+reviews:
+  high_level_summary: true
+  # This placeholder doesn't exist, so this effectively disables the summary in
+  # the description.
+  high_level_summary_placeholder: "@coderabbitai summary"
+  poem: false
+  path_instructions:
+    - path: '**/*.md'
+      instructions: Remember that markdown documentations must be updated with the lastest information.
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - docs/developers_guide/dev_guidelines.md
+
+

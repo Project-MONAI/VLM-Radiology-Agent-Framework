@@ -18,6 +18,6 @@ RUN apt-get install -y python3-pip
 SHELL ["/bin/bash", "-c"] 
 RUN ln -s /usr/bin/python3 /usr/bin/python
 
-RUN git clone https://github.com/Project-MONAI/VLM --recursive
-WORKDIR /VLM
+RUN git clone https://github.com/Project-MONAI/VLM-Radiology-Agent-Framework --recursive
+WORKDIR /VLM-Radiology-Agent-Framework
 RUN make demo_m3
