@@ -111,7 +111,7 @@ For details, see [here](m3/README.md).
 To lint the code, please install these packages:
 
 ```bash
-pip install -r requirements-ci.txt
+pip install pre-commit
 ```
 
 Then run the following command:
