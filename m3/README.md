@@ -2,121 +2,141 @@
   <img src="https://raw.githubusercontent.com/Project-MONAI/MONAI/dev/docs/images/MONAI-logo-color.png" width="30%"/>
 </p>
 
-# VILA-M3
+# MONAI Vision Language Models
+The repository provides a collection of vision language models, benchmarks, and related applications, released as part of Project [MONAI](https://monai.io) (Medical Open Network for Artificial Intelligence).
 
-[![Code License](https://img.shields.io/badge/Code%20License-Apache_2.0-green.svg)](../LICENSE)
-[![Model License](https://img.shields.io/badge/MODEL--License-CC_BY--NC--SA--4.0-red.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.en)
-[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/release/python-3100/)
+## 💡 News
 
-[MONAI Huggingface](https://huggingface.co/monai)
+- [2024/12/04] The arXiv version of VILA-M3 is now available [here](https://arxiv.org/abs/2411.12915).
+- [2024/10/31] We released the [VILA-M3-3B](https://huggingface.co/MONAI/Llama3-VILA-M3-3B), [VILA-M3-8B](https://huggingface.co/MONAI/Llama3-VILA-M3-8B), and [VILA-M3-13B](https://huggingface.co/MONAI/Llama3-VILA-M3-13B) checkpoints on [HuggingFace](https://huggingface.co/MONAI).
+- [2024/10/24] We presented VILA-M3 and the VLM module in MONAI at MONAI Day ([slides](./m3/docs/materials/VILA-M3_MONAI-Day_2024.pdf), [recording](https://www.youtube.com/watch?v=ApPVTuEtBjc&list=PLtoSVSQ2XzyDOjOn6oDRfEMCD-m-Rm2BJ&index=16))
+- [2024/10/24] Interactive [VILA-M3 Demo](https://vila-m3-demo.monai.ngc.nvidia.com/) is available online!
 
-## Introduction 
+## VILA-M3
 
 **VILA-M3** is a *vision language model* designed specifically for medical applications. 
-It focuses on addressing the unique challenges faced by general-purpose vision-language models when applied to the medical domain. 
-The key characteristics of the model include:
-
-1. **Expert Input in Medical Models**: VILA-M3 integrates expert knowledge into the model, 
-acknowledging the demands of precision and domain knowledge of the medical field where general-purpose models may fall short.
-  
-2. **VILA Base Model**: VILA-M3 leverages the strong capabilities of the VILA vision-language model and fine-tunes it on healthcare-specific datasets.
-
-3. **Hybrid Information Fusion**: VILA-M3 can incorporate 2D, 3D, and even 4D information by fusion of expert model results and VLM predictions.
-
-4. **Open-Source MONAI Module**: The model and several fine-tuned checkpoints are released as part of project [MONAI](https://monai.io). 
-We provide scripts for data preparation and a standardized module for benchmarking to evaluate the models in various medical imaging tasks.
-
-Below is an overview of the VILA-M3 with expert model integration and feedback. 
-The VLM (based on [VILA](https://github.com/NVlabs/VILA)) can select the most appropriate expert model to run given an image and user prompt. 
-The resulting expert model output will be fed back to the VLM for generating the final prediction using a back-and-forth conversation.
+It focuses on addressing the unique challenges faced by general-purpose vision-language models when applied to the medical domain and integrated with existing expert segmentation and classification models.
 
 <p align="center">
-  <img src="docs/images/MONAI-VLM_Overview.svg" width="95%"/>
+  <img src="m3/docs/images/VILA-M3_overview_v2.png" width="95%"/>
 </p>
 
-Model cards that describe available expert models for VILA-M3 to choose from are structured in the following way
-<p align="left">
-  <img src="docs/images/model_cards.png" width="60%"/>
-</p>
-
-For an example, see the [code](./data_prepare/experts/expert_utils.py) used for generating [training data](./data_prepare/experts/README.md).
-
-## Performance
-
-### VQA Benchmarks
-|     Model                 |     Type             | VQA-RAD*  | SLAKE-VQA | Path-VQA | Average  |
-|---------------------------|----------------------|-----------|-----------|----------|----------|
-|     Llava-Med             |     Task-specific    | *84.2*    | *86.8*    | *91.7*   | *87.6*   |
-|     Med-Gemini-1.5T       |     Generalist       | 78.8      | **84.8**  | 83.3     | 82.3     |
-|     Llama3-VILA-M3-3B     |     Generalist       | 78.2      | 79.8      | 87.9     | 82.0     |
-|     Llama3-VILA-M3-8B     |     Generalist       | **84.5**  | 84.5      | 90.0     | **86.3** |
-|     Llama3-VILA-M3-13B    |     Generalist       | 80.5      | 83.2      | **91.0** | 84.9     |
-
-*Comparisons to Llava-Med & Med-Gemini are not direct as data splits are not available.
-
-### Report Generation Benchmarks
-|     Model                 |     Type             | BLUE-4*  | ROUGE*   | GREEN*   |
-|---------------------------|----------------------|----------|----------|----------|
-|     Llava-Med             |     Task-specific    | *1.0*    | *13.3*   | -        |
-|     Med-Gemini-1.5T       |     Generalist       | 20.5     | 28.3     | -        |
-|     Llama3-VILA-M3-3B     |     Generalist       | 20.2     | 31.7     | 39.4     |
-|     Llama3-VILA-M3-8B     |     Generalist       | 21.5     | **32.3** | 40.0     |
-|     Llama3-VILA-M3-13B    |     Generalist       | **21.6** | 32.1     | 39.3     |
-
-*Comparisons to Llava-Med & Med-Gemini are not direct as data splits are not available.
-
-### Classification Benchmarks
-| Expert info               | w/o          | w/o        | with         | with       |
-|---------------------------|--------------|------------|--------------|------------|
-|     Model                 | ChestX-ray14 | CheXpert   | ChestX-ray14 | CheXpert   |
-|     Med-Gemini-1.5T       | 46.7         | 48.3       | -            | -          |
-|     TorchXRayVision       | -            | -          | 50           | 51.5       |
-|     Llama3-VILA-M3-3B     | 48.4         | 57.4       | **51.3**     | 60.8       |
-|     Llama3-VILA-M3-8B     | 45.9         | **61.4**   | 50.7         | 60.4       |
-|     Llama3-VILA-M3-13B    | **49.9**     | 55.8       | 51.2         | **61.5**   |
+For details, see [here](m3/README.md).
 
 ## Demo
-For and interactive demo, please access here.
-The code to run the demo locally is described [here](../README.md#local-demo).
 
-## Data preparation
-To prepare the datasets for training and evaluation, follow the instructions in [data_prepare](./data_prepare).
+### Prerequisites
 
-## Training
-To replicate our fine-tuning procedure, utilize the provided scripts.
+#### **Recommended: Build Docker Container**
+1.  To run the demo, we recommend building a Docker container with all the requirements.
+    We use a [base image](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda) with cuda preinstalled.
+    ```bash
+    docker build --network=host --progress=plain -t monai-m3:latest -f m3/demo/Dockerfile .
+    ```
+2. Run the container
+    ```bash
+    docker run -it --rm --ipc host --gpus all --net host monai-m3:latest bash
+    ```
+    > Note: If you want to load your own VILA checkpoint in the demo, you need to mount a folder using `-v <your_ckpts_dir>:/data/checkpoints` in your `docker run` command.
+3. Next, follow the steps to start the [Gradio Demo](./README.md#running-the-gradio-demo).
 
-For our released checkpoints, we use a slurm cluster environment.
-- VILA training code with Torch distributed
-- 4 nodes with 8xA100 GPUs (80 GB each)
-- Cosine learning rate decay with warmup
+#### Alternative: Manual installation
+1. **Linux Operating System**
 
-<p align="left">
-  <img src="docs/images/training.png" width="50%"/>
-</p>
+1. **CUDA Toolkit 12.2** (with `nvcc`) for [VILA](https://github.com/NVlabs/VILA).
 
-|     # Parameters    |     Training time    |
-|---------------------|----------------------|
-|     3 billion       |     5.5 hours        |
-|     8 billion       |     11.0 hours       |
-|     13 billion      |     19.5 hours       |
+    To verify CUDA installation, run:
+    ```bash
+    nvcc --version
+    ```
+    If CUDA is not installed, use one of the following methods:
+    - **Recommended** Use the Docker image: `nvidia/cuda:12.2.2-devel-ubuntu22.04`
+        ```bash
+        docker run -it --rm --ipc host --gpus all --net host nvidia/cuda:12.2.2-devel-ubuntu22.04 bash
+        ```
+    - **Manual Installation (not recommended)** Download the appropiate package from [NVIDIA offical page](https://developer.nvidia.com/cuda-12-2-2-download-archive)
 
-## Evaluation
-To evaluate a model on the above benchmarks, follow the instructions in [eval](./eval/README.md)
+1. **Python 3.10** **Git** **Wget** and **Unzip**:
+    
+    To install these, run
+    ```bash
+    sudo apt-get update
+    sudo apt-get install -y wget python3.10 python3.10-venv python3.10-dev git unzip
+    ```
+    NOTE: The commands are tailored for the Docker image `nvidia/cuda:12.2.2-devel-ubuntu22.04`. If using a different setup, adjust the commands accordingly.
 
-## 🔒 License
+1. **GPU Memory**: Ensure that the GPU has sufficient memory to run the models:
+    - **VILA-M3**: 8B: ~18GB, 13B: ~30GB
+    - **CXR**: This expert dynamically loads various [TorchXRayVision](https://github.com/mlmed/torchxrayvision) models and performs ensemble predictions. The memory requirement is roughly 1.5GB in total.
+    - **VISTA3D**: This expert model dynamically loads the [VISTA3D](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/monaitoolkit/models/monai_vista3d) model to segment a 3D-CT volume. The memory requirement is roughly 12GB, and peak memory usage can be higher, depending on the input size of the 3D volume.
+    - **BRATS**: (TBD)
 
-- The code in this repository is released under [Apache 2.0 license](../LICENSE).
-- The fine-tuned weights are released under ... (TBD)
+1. ***Setup Environment***: Clone the repository, set up the environment, and download the experts' checkpoints:
+    ```bash
+    git clone https://github.com/Project-MONAI/VLM-Radiology-Agent-Framework --recursive
+    cd VLM
+    python3.10 -m venv .venv
+    source .venv/bin/activate
+    make demo_m3
+    ```
 
-## Citations
+### Running the Gradio Demo
 
+1. Navigate to the demo directory:
+    ```bash
+    cd m3/demo
+    ```
+
+1. Start the Gradio demo:
+    > This will automatically download the default VILA-M3 checkpoint from Hugging Face.
+    ```bash
+    python gradio_m3.py
+    ```
+
+1. Alternative: Start the Gradio demo with a local checkpoint, e.g.:
+    ```bash
+    python gradio_m3.py  \
+    --source local \
+    --modelpath /data/checkpoints/<8B-checkpoint-name> \
+    --convmode llama_3
+    ```
+> For details, see the available [commmandline arguments](./m3/demo/gradio_m3.py#L855).
+
+
+#### Adding your own expert model
+- This is still a work in progress. Please refer to the [README](m3/demo/experts/README.md) for more details.
+
+## Contributing
+
+To lint the code, please install these packages:
+
+```bash
+pip install -r requirements-ci.txt
 ```
-TBD
+
+Then run the following command:
+
+```bash
+isort --check-only --diff .  # using the configuration in pyproject.toml
+black . --check  # using the configuration in pyproject.toml
+ruff check .  # using the configuration in ruff.toml
 ```
 
-# Acknowledgements
+To auto-format the code, run the following command:
 
-- Our models are fine-tuned using [VILA code and base models](https://github.com/NVlabs/VILA).
-- We thank the data providers of all the healthcare datasets detailed in [data_prepare](./data_prepare).
-- The `Medical-Diff-VQA` data preparation and evaluation scripts were contributed by the authors of the [D-RAX paper](https://arxiv.org/abs/2407.02604).
-- We thank the developers of expert models used for training and evaluating VILA-M3: [TorchXRayVision](https://github.com/mlmed/torchxrayvision) and models from the [MONAI Model Zoo](https://monai.io/model-zoo.html).
+```bash
+isort . && black . && ruff format .
+```
+
+## References & Citation
+
+If you find this work useful in your research, please consider citing:
+
+```bibtex
+@article{nath2024vila,
+  title={VILA-M3: Enhancing Vision-Language Models with Medical Expert Knowledge},
+  author={Nath, Vishwesh and Li, Wenqi and Yang, Dong and Myronenko, Andriy and Zheng, Mingxin and Lu, Yao and Liu, Zhijian and Yin, Hongxu and Law, Yee Man and Tang, Yucheng and others},
+  journal={arXiv preprint arXiv:2411.12915},
+  year={2024}
+}
+```
