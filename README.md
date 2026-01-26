@@ -27,7 +27,11 @@ For details, see [here](m3/README.md).
 
 ### Prerequisites
 
-#### **Recommended: Build Docker Container**
+This project supports both **NVIDIA CUDA** and **AMD ROCm** GPUs.
+
+---
+
+#### **Option A: NVIDIA GPU (CUDA) - Recommended Docker Setup**
 1.  To run the demo, we recommend building a Docker container with all the requirements.
     We use a [base image](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda) with cuda preinstalled.
     ```bash
@@ -40,7 +44,39 @@ For details, see [here](m3/README.md).
     > Note: If you want to load your own VILA checkpoint in the demo, you need to mount a folder using `-v <your_ckpts_dir>:/data/checkpoints` in your `docker run` command.
 3. Next, follow the steps to start the [Gradio Demo](./README.md#running-the-gradio-demo).
 
-#### Alternative: Manual installation
+---
+
+#### **Option B: AMD GPU (ROCm) - MI300X Support**
+
+For AMD Instinct MI300X GPUs with ROCm, see the detailed guide: **[AMD_ROCM_SETUP.md](./AMD_ROCM_SETUP.md)**
+
+**Quick Start with Docker:**
+```bash
+# Build ROCm container
+docker build --network=host --progress=plain -t monai-m3-rocm:latest -f m3/demo/Dockerfile.rocm .
+
+# Run container
+docker run -it --rm --ipc host \
+    --device=/dev/kfd --device=/dev/dri \
+    --group-add video --cap-add=SYS_PTRACE \
+    --security-opt seccomp=unconfined \
+    --net host \
+    -e HIP_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 \
+    monai-m3-rocm:latest bash
+```
+
+**Quick Start Manual Installation:**
+```bash
+git clone https://github.com/Project-MONAI/VLM-Radiology-Agent-Framework --recursive
+cd VLM-Radiology-Agent-Framework
+python3.10 -m venv .venv
+source .venv/bin/activate
+make demo_m3_rocm
+```
+
+---
+
+#### Alternative: Manual installation (NVIDIA)
 1. **Linux Operating System**
 
 1. **CUDA Toolkit 12.2** (with `nvcc`) for [VILA](https://github.com/NVlabs/VILA).
@@ -70,6 +106,7 @@ For details, see [here](m3/README.md).
     - **CXR**: This expert dynamically loads various [TorchXRayVision](https://github.com/mlmed/torchxrayvision) models and performs ensemble predictions. The memory requirement is roughly 1.5GB in total.
     - **VISTA3D**: This expert model dynamically loads the [VISTA3D](https://catalog.ngc.nvidia.com/orgs/nvidia/teams/monaitoolkit/models/monai_vista3d) model to segment a 3D-CT volume. The memory requirement is roughly 12GB, and peak memory usage can be higher, depending on the input size of the 3D volume.
     - **BRATS**: (TBD)
+    - **AMD MI300X**: 192GB HBM3 per GPU - can handle all models with large batch sizes
 
 1. ***Setup Environment***: Clone the repository, set up the environment, and download the experts' checkpoints:
     ```bash

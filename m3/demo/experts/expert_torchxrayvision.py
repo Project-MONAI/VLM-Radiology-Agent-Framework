@@ -12,6 +12,8 @@
 """
 The implementation of TorchXRayVision expert model is adapted from the Get-Started example in TorchXRayVision:
 https://github.com/mlmed/torchxrayvision
+
+Supports both NVIDIA CUDA and AMD ROCm GPUs.
 """
 
 import re
@@ -20,6 +22,7 @@ import skimage.io
 import torch
 import torchxrayvision as xrv
 from experts.base_expert import BaseExpert
+from experts.device_utils import get_device
 
 MODEL_NAMES = [
     "densenet121-res224-all",
@@ -235,17 +238,18 @@ cls_models = {
 
 
 class ExpertTXRV(BaseExpert):
-    """Expert model for the TorchXRayVision model."""
+    """Expert model for the TorchXRayVision model. Supports NVIDIA CUDA and AMD ROCm."""
 
     def __init__(self) -> None:
         """Initialize the CXR expert model."""
         self.model_name = "CXR"
+        self.device = get_device()  # Auto-detect GPU (CUDA or ROCm)
         self.models = {}
         for name in MODEL_NAMES:
             if "densenet" in name:
-                self.models[name] = xrv.models.DenseNet(weights=name).to("cuda")
+                self.models[name] = xrv.models.DenseNet(weights=name).to(self.device)
             elif "resnet" in name:
-                self.models[name] = xrv.models.ResNet(weights=name).to("cuda")
+                self.models[name] = xrv.models.ResNet(weights=name).to(self.device)
 
     def classification_to_string(self, outputs):
         """Format the classification outputs to a string."""
@@ -303,7 +307,7 @@ class ExpertTXRV(BaseExpert):
         preds_label = {label: [] for label in xrv.datasets.default_pathologies}
 
         with torch.no_grad():
-            img = torch.from_numpy(img).unsqueeze(0).to("cuda")
+            img = torch.from_numpy(img).unsqueeze(0).to(self.device)
             for name, model in self.models.items():
                 preds = model(img).cpu()
                 for k, v in zip(xrv.datasets.default_pathologies, preds[0].detach().numpy()):

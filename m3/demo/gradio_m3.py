@@ -23,6 +23,7 @@ from zipfile import ZipFile
 import gradio as gr
 import torch
 from dotenv import load_dotenv
+from experts.device_utils import get_device, get_gpu_backend, print_gpu_info
 from experts.expert_monai_brats import ExpertBrats
 from experts.expert_monai_vista3d import ExpertVista3D
 from experts.expert_torchxrayvision import ExpertTXRV
@@ -279,14 +280,22 @@ def new_session_variables(**kwargs):
 
 
 class M3Generator:
-    """Class to generate M3 responses"""
+    """Class to generate M3 responses. Supports NVIDIA CUDA and AMD ROCm GPUs."""
 
     def __init__(self, source="huggingface", model_path="MONAI/Llama3-VILA-M3-8B", conv_mode="llama_3"):
         """Initialize the M3 generator"""
         global SYS_PROMPT
         self.source = source
+        
+        # Log GPU backend information
+        backend = get_gpu_backend()
+        logger.info(f"GPU Backend: {backend.upper()}")
+        if torch.cuda.is_available():
+            logger.info(f"Number of GPUs: {torch.cuda.device_count()}")
+            for i in range(torch.cuda.device_count()):
+                logger.info(f"  GPU {i}: {torch.cuda.get_device_name(i)}")
+        
         if source == "local" or source == "huggingface":
-            # TODO: allow setting the device
             disable_torch_init()
             self.conv_mode = conv_mode
             if source == "huggingface":

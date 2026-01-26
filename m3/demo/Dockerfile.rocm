@@ -1,0 +1,41 @@
+# Copyright (c) MONAI Consortium
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#     http://www.apache.org/licenses/LICENSE-2.0
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# AMD ROCm base image for MI300X
+FROM rocm/pytorch:rocm6.2_ubuntu22.04_py3.10_pytorch_release_2.3.0
+
+# Set environment variables for ROCm
+ENV ROCM_HOME=/opt/rocm
+ENV PATH="${ROCM_HOME}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${ROCM_HOME}/lib:${LD_LIBRARY_PATH}"
+ENV HSA_FORCE_FINE_GRAIN_PCIE=1
+ENV HIP_VISIBLE_DEVICES=0,1,2,3,4,5,6,7
+ENV PYTORCH_ROCM_ARCH="gfx942"  # MI300X architecture
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    git \
+    unzip \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+SHELL ["/bin/bash", "-c"]
+
+# Ensure python points to python3
+RUN ln -sf /usr/bin/python3 /usr/bin/python
+
+# Clone the repository
+RUN git clone https://github.com/Project-MONAI/VLM-Radiology-Agent-Framework --recursive
+WORKDIR /VLM-Radiology-Agent-Framework
+
+# Install with ROCm support
+RUN make demo_m3_rocm
